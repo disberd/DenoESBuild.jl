@@ -1,0 +1,14 @@
+name = "DenoESBuild"
+uuid = "aff91ddb-6407-42b7-bb34-3a1644953040"
+authors = ["Alberto Mengali <disberd@gmail.com>"]
+version = "0.1.0"
+
+[deps]
+Deno_jll = "04572ae6-984a-583e-9378-9577a1c2574d"
+JSON3 = "0f8b85d8-7281-11e9-16c2-39a750bddbf1"
+StructTypes = "856f2bd8-1eba-4b0a-8007-ebc267875bd4"
+
+[compat]
+Deno_jll = "2.2.6"
+JSON3 = "1.14.2"
+StructTypes = "1.11.0"

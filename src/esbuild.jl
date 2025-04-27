@@ -81,13 +81,22 @@ bundle("src/main.ts", "dist/main.js")
 
 See also: [`DenoESBuild.build`](@ref)
 """
-function bundle(entrypoint::AbstractString, outfile::AbstractString; kwargs...) 
-    entrypoint = abspath(entrypoint)
-    outfile = abspath(outfile)
-    mktempdir() do dir
+function bundle(entrypoint::AbstractString, outfile::AbstractString; dir = nothing, kwargs...) 
+    if isnothing(dir)
+        # We are creating a temporary directory so we make the entrypoint and outfile absolute
+        entrypoint = abspath(entrypoint)
+        outfile = abspath(outfile)
+    end
+    f(dir) = let
+        dir = abspath(dir)
         cd(dir) do
             build(entrypoint, outfile; dir, bundle = true, format = "esm", minify = true, platform = "browser", kwargs...)
         end
+    end
+    if isnothing(dir)
+        mktempdir(f)
+    else
+        f(dir)
     end
 end
 

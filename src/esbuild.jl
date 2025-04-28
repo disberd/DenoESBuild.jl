@@ -48,9 +48,10 @@ build(;
 )
 ```
 """
-function build(; dir = pwd(), stdin = devnull, stdout = devnull, stderr = nothing, rethrow_errors = false, kwargs...)
+function build(; dir = pwd(), stdin = devnull, stdout = devnull, stderr = nothing, rethrow_errors = false, entryPoints, kwargs...)
+    f = process_entrypoint(dir) # This we need for some windows issues, see the comment in process_entrypoint
     mktemp(dir) do scriptpath, io
-        default_build_script!(scriptpath; kwargs...)
+        default_build_script!(scriptpath; entryPoints = map(f, entryPoints), kwargs...)
         bin = default_build_command(scriptpath)
         _run(bin; dir, stdin, stdout, stderr, rethrow_errors)
     end
@@ -114,7 +115,9 @@ bundle(DenoESBuild.jscode("export function hello() { return 'Hello, world!'; }")
 See also: [`DenoESBuild.build`](@ref), [`DenoESBuild.bundle`](@ref), [`DenoESBuild.jscode`](@ref)
 """ 
 function bundle(code::JSCode, args...; kwargs...) 
-    entrypoint = tempname() * ".js"
-    write(entrypoint, code.code)
-    bundle(entrypoint, args...; kwargs...)
+    mktemp() do entrypoint, io
+        write(io, code.code)
+        close(io)
+        bundle(entrypoint, args...; kwargs...)
+    end
 end

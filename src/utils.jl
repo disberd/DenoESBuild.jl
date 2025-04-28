@@ -89,3 +89,34 @@ function prettify(code::JSCode, options::AbstractString...; kwargs...)
         rm(filepath)
     end
 end
+
+#= 
+We need this function because on windows entry points with absolute paths are broken as the drive letter gets removed from the path. 
+See this comment on reddit: https://www.reddit.com/r/Deno/comments/1j5puzk/comment/mgmajp0
+And these related issues where the drive letter is evident from examples but not explicitly mentioned:
+- https://github.com/slackapi/deno-slack-sdk/issues/258
+- https://github.com/slackapi/deno-slack-sdk/issues/391
+=#
+function process_entrypoint(entrypoint::AbstractString, dir::AbstractString)
+    isabspath(entrypoint) || return entrypoint
+    @static if Sys.iswindows()
+        return relpath(entrypoint, dir)
+    else
+        return entrypoint
+    end
+end
+function process_entrypoint(entrypoint, dir::AbstractString)
+    @static if Sys.iswindows()
+        # We assume entrypoint is an object that can be converted to json with JSON3.write. We go back and forth from JSON to get a consistent output type
+        d = entrypoint |> JSON3.write |> JSON3.read |> copy # The copy is just to make the JSON3.Object a plain dict
+        path = get(d, :in, "")
+        isabspath(path) || return d # If we don't have an abspath in the `in` field we just return the dict as is
+        # If we get here, there is an abspath in the `in` field so we have to process it
+        d[:in] = relpath(path, dir)
+        return d
+    else
+        # There is no problem with abspaths on linux/macos so we simply return
+        return entrypoint
+    end
+end
+process_entrypoint(dir::AbstractString) = Base.Fix2(process_entrypoint, dir)

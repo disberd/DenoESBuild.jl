@@ -3,7 +3,7 @@
     
 Builds JavaScript/TypeScript code using esbuild.build through Deno.
 
-This function creates a temporary build script and executes it with Deno to run esbuild.build.
+This function creates a temporary build script (within the `dir` directory) which contains a call to `esbuild.build` and executes it with Deno.
 
 The template of the generated build script is the following:
 ```js
@@ -17,16 +17,17 @@ const result = await esbuild.build({
 
 esbuild.stop();
 ```
-where the kwargs passed to the julia function will be forwarded to the esbuild.build function using the JSON3.write function.
+where the kwargs passed to the julia function will be forwarded to the esbuild.build function and translated into JS code using the `JSON3.write` function.
 
 The generated build script following the template above will be run using the command:
 ```bash
 deno run --allow-env --allow-read --allow-write --allow-net --allow-run --node-modules-dir <scriptpath>
 ```
+where `<scriptpath>` is the path to the generated build script.
 
 ## Keyword Arguments
 - `dir`: Directory to run the deno command in (defaults to current directory)
-- `stdin`, `stdout`, `stderr`: these are simply forwarded to the `pipeline` function that is wrapping the deno command
+- `stdin`, `stdout`, `stderr`: these are simply forwarded to the [`Base.pipeline`](@ref) function that is wrapping the deno command
 - `kwargs...`: Additional arguments passed to esbuild.build as options, example of valid arguments are:
   - `entryPoints`: Array of entry point file paths
   - `outfile`: Output file path
@@ -47,12 +48,11 @@ build(;
 )
 ```
 """
-function build(; dir = pwd(), stdin = devnull, stdout = devnull, stderr = nothing, kwargs...)
-    dir = abspath(dir)
+function build(; dir = pwd(), stdin = devnull, stdout = devnull, stderr = nothing, rethrow_errors = false, kwargs...)
     mktemp(dir) do scriptpath, io
-        default_build_script_contents(scriptpath; kwargs...)
+        default_build_script!(scriptpath; kwargs...)
         bin = default_build_command(scriptpath)
-        _run(bin; dir, stdin, stdout, stderr)
+        _run(bin; dir, stdin, stdout, stderr, rethrow_errors)
     end
 end
 
@@ -70,34 +70,29 @@ end
 """
     bundle(entrypoint::AbstractString, outfile::AbstractString; kwargs...)
 
-Bundles a single entry point file to a standalone output file using esbuild.build through Deno.
+Bundles a single entry point file to a standalone output file using `esbuild.build` through Deno.
+
+This relies on the [deno-esbuild-plugin](https://github.com/due-sabati/deno-esbuild-plugin) to fully exploit Deno's caching, loading and module resolution capabilities. Making it easier to bundle JS modules on disk for offline use.
 
 This function is a shortcut for `build(; entryPoints = [entrypoint], outfile, bundle = true, format = "esm", minify = true, platform = "browser", kwargs...)`.
 
 # Example
 ```julia
-bundle("src/main.ts", "dist/main.js")
+using DenoESBuild
+
+#= 
+This will bundle all into a single js file located at `dist/main.js` all
+functionality contained in `src/main.ts`, including all the required functions
+used in `src/main.ts` but imported therein from other files or remote moduels
+(e.g. npm).
+=#
+DenoESBuild.bundle("src/main.ts", "dist/main.js")
 ``` 
 
 See also: [`DenoESBuild.build`](@ref)
 """
-function bundle(entrypoint::AbstractString, outfile::AbstractString; dir = nothing, kwargs...) 
-    if isnothing(dir)
-        # We are creating a temporary directory so we make the entrypoint and outfile absolute
-        entrypoint = abspath(entrypoint)
-        outfile = abspath(outfile)
-    end
-    f(dir) = let
-        dir = abspath(dir)
-        cd(dir) do
-            build(entrypoint, outfile; dir, bundle = true, format = "esm", minify = true, platform = "browser", kwargs...)
-        end
-    end
-    if isnothing(dir)
-        mktempdir(f)
-    else
-        f(dir)
-    end
+function bundle(entrypoint::AbstractString, outfile::AbstractString; kwargs...) 
+    build(entrypoint, outfile; bundle = true, format = "esm", minify = true, platform = "browser", kwargs...)
 end
 
 """

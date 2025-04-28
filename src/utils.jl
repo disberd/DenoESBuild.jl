@@ -1,11 +1,5 @@
-struct JSCode
-    code::String
-end
-@inline StructTypes.StructType(::Type{JSCode}) = JSON3.RawType()
-@inline JSON3.rawbytes(x::JSCode) = codeunits(x.code)
-
 """
-    jscode(s::AbstractString)
+    DenoESBuild.JSCode(s::AbstractString)
 
 Takes a string `s` representing javascript/typescript code and returns a `JSCode` object wrapping it.
 
@@ -13,10 +7,14 @@ The main purpose of this is to handle custom printing through `JSON3.write` and 
 
 See also: [`DenoESBuild.bundle`](@ref)
 """
-jscode(s::AbstractString) = JSCode(s)
+struct JSCode
+    code::String
+end
+@inline StructTypes.StructType(::Type{JSCode}) = JSON3.RawType()
+@inline JSON3.rawbytes(x::JSCode) = codeunits(x.code)
 
 default_build_command(scriptpath::AbstractString) = deno_command(
-    :run, 
+    :run,
     "--allow-env",
     "--allow-read",
     "--allow-write",
@@ -27,37 +25,67 @@ default_build_command(scriptpath::AbstractString) = deno_command(
 )
 
 # Create the default build script
-function default_build_script_contents(filepath::AbstractString; prettify_file = false, kwargs...) 
+function default_build_script!(filepath::AbstractString; kwargs...)
     open(filepath, "w") do io
-        println(io, "import * as esbuild from \"npm:esbuild@0.23.0\";")
-        println(io, "import { denoPlugins, denoLoader, denoResolver, denoPluginOptions } from \"jsr:@duesabati/esbuild-deno-plugin@0.2.6\";")
-
-        println(io)
-        println(io, "// Build the bundle")
-
-        print(io, "const result = await esbuild.build(")
-
-        build_options = (;
-            plugins = [jscode("...denoPlugins()")],
-            kwargs...
-        )
-
-        # Write the option to build
-        JSON3.write(io, build_options)
-
-        println(io, ");")
-        println(io)
-        println(io, "esbuild.stop();")
-    end
-    if prettify_file
-        # Prettify
-        _deno(:fmt, filepath; stdout = devnull)
+        default_build_script!(io; kwargs...)
     end
     return filepath
 end
-# Version that returns the contents as a string
-function default_script_contents(::Type{String}; kwargs...)
+function default_build_script!(io::IO; kwargs...)
+    # Version that returns the contents as a string
+    println(io, "import * as esbuild from \"npm:esbuild@0.23.0\";")
+    println(io, "import { denoPlugins, denoLoader, denoResolver, denoPluginOptions } from \"jsr:@duesabati/esbuild-deno-plugin@0.2.6\";")
+
+    println(io)
+    println(io, "// Build the bundle")
+
+    print(io, "const result = await esbuild.build(")
+
+    build_options = (;
+        plugins=[JSCode("...denoPlugins()")],
+        kwargs...
+    )
+
+    # Write the option to build
+    JSON3.write(io, build_options)
+
+    println(io, ");")
+    println(io)
+    println(io, "esbuild.stop();")
+end
+
+
+"""
+    prettify(files::Vector{<:AbstractString}, options::AbstractString...; kwargs...)
+    prettify(file::AbstractString, options::AbstractString...; kwargs...)
+    prettify(code::JSCode, options::AbstractString...; kwargs...)
+
+Prettify the given code or file(s) using the Deno formatter via the `deno fmt` command.
+All extra arguments are directly forwarded to the deno call with the following synthax 
+```
+deno fmt [options] [files]
+```
+
+If the first input is an object of type `JSCode`, the function will return the formatted code as a String.
+
+See also: [`DenoESBuild.JSCode`](@ref)
+"""
+function prettify(filepaths::Vector{<:AbstractString}, options::AbstractString...; kwargs...)
+    _deno(:fmt,
+        options...,
+        filepaths...;
+        kwargs...)
+end
+prettify(filepath::AbstractString, options::AbstractString...; kwargs...) = prettify([filepath], options...; kwargs...)
+function prettify(code::JSCode, options::AbstractString...; kwargs...)
     filepath = tempname() * ".js"
-    default_script_contents(filepath; kwargs...)
-    return read(filepath, String)
+    try
+        open(filepath, "w") do io
+            print(io, code.code)
+        end
+        prettify(filepath, options...; stderr=devnull, kwargs...)
+        read(filepath, String)
+    finally
+        rm(filepath)
+    end
 end

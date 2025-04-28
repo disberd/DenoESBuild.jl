@@ -3,7 +3,7 @@
 [![Coverage](https://codecov.io/gh/disberd/DenoESBuild.jl/branch/main/graph/badge.svg)](https://codecov.io/gh/disberd/DenoESBuild.jl)
 [![Aqua QA](https://raw.githubusercontent.com/JuliaTesting/Aqua.jl/master/badge.svg)](https://github.com/JuliaTesting/Aqua.jl)
 
-DenoESBuild.jl is a Julia package that provides a simple interface for bundling JavaScript/TypeScript code using the `build` function of the [esbuild](https://esbuild.github.io/api/) library through Deno using the `Deno_jll.jl` package.
+DenoESBuild.jl is a Julia package that provides a simple interface for bundling JavaScript/TypeScript code using the `build` function of the [esbuild](https://esbuild.github.io/api/#build) library through Deno using the `Deno_jll.jl` package.
 
 It also exploits the [esbuild-deno-plugin](https://github.com/twosaturdayscode/esbuild-deno-plugin) to allow deno caching, module resolution and loading as part of the esbuild build process.
 

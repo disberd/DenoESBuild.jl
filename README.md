@@ -8,7 +8,7 @@ DenoESBuild.jl is a Julia package that provides a simple interface for bundling 
 It also exploits the [esbuild-deno-plugin](https://github.com/due-sabati/esbuild-deno-plugin) to allow deno caching, module resolution and loading as part of the esbuild build process.
 
 > [!NOTE]
-> When bundling files that refer to remote imports (e.g. `npm:...`), an internet connection is in princple required to fetch the remote libraries. This is not the case if the target libraries are already availabile in the Deno cache.
+> When bundling files that refer to remote imports (e.g. `npm:...`), an internet connection is in principle required to fetch the remote libraries. This is not the case if the target libraries are already availabile in the Deno cache.
 
 
 This package does not export any function, but the following methods are considered part of the public API:
@@ -17,9 +17,18 @@ This package does not export any function, but the following methods are conside
 - `DenoESBuild.JSCode`
 
 ## Example Use
+The two examples below are both for the `bundle` function as that is the easiest way to use this package.
+
+The `DenoESBuild.bundle` function is simply a small wrapper around the `DenoESBuild.build` function, that automatically sets the following flags to be passed as options to `esbuild.build`:
+- `bundle: true`
+- `minify: true`
+- `format: "esm"`
+- `platform: "browser"`
+
+See the docstring of the `DenoESBuild.build` function for more details on its use.
 
 ### Bundle from input code
-Here is a simple code snippet that will generate a single js (stored in `./dist/main.js`) file containing defining an ESM module that extracts the `ceil` function from the lodash library and re-exports it
+Here is a simple code snippet that will generate a single js (stored in `./dist/main.js`) file containing an ESM module that extracts the `ceil` function from the lodash library and re-exports it
 ```julia
 using DenoESBuild
 
@@ -31,11 +40,6 @@ DenoESBuild.bundle(
     "dist/main.js"
 )
 ```
-
-The `DenoESBuild.bundle` function will automatically build with the following flags passed as options to `esbuild.build`:
-- `minify: true`
-- `format: "esm"`
-- `platform: "browser"`
 
 ### Bundle from file
 This works even for a module structure divided into multiple files, as in the simple example explained below, which is mirroring the structure of the [`test/multifile`](test/multifile) subfolder.

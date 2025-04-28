@@ -101,7 +101,7 @@ function process_entrypoint(entrypoint::AbstractString, dir::AbstractString)
     isabspath(entrypoint) || return entrypoint
     @static if Sys.iswindows()
         newpath = relpath(entrypoint, dir)
-        @info "Changed path" entrypoint newpath
+        @info "Changed path" entrypoint newpath dir
         return newpath
     else
         return entrypoint

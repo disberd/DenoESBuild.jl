@@ -28,6 +28,7 @@ where `<scriptpath>` is the path to the generated build script.
 ## Keyword Arguments
 - `dir`: Directory to run the deno command in (defaults to current directory)
 - `stdin`, `stdout`, `stderr`: these are simply forwarded to the [`Base.pipeline`](@ref) function that is wrapping the deno command
+- `rethrow_errors`: Whether to errors that are encountered when trying to run a deno command. If `false` (default) then the error is printed on stdout but the julia execution does not stop. If `true` then the error is rethrown.
 - `kwargs...`: Additional arguments passed to esbuild.build as options, example of valid arguments are:
   - `entryPoints`: Array of entry point file paths
   - `outfile`: Output file path
@@ -48,13 +49,17 @@ build(;
 )
 ```
 """
-function build(; dir = pwd(), stdin = devnull, stdout = devnull, stderr = nothing, rethrow_errors = false, entryPoints, kwargs...)
+function build(; dir = pwd(), stdin = devnull, stdout = devnull, stderr = nothing, remove_node_modules = nothing, rethrow_errors = false, entryPoints, kwargs...)
+    nodes_modules_dir = joinpath(dir, "node_modules")
+    clean_node_modules = @something remove_node_modules !isdir(nodes_modules_dir) # we remove if the dir did not exist already before building
     f = process_entrypoint(dir) # This we need for some windows issues, see the comment in process_entrypoint
     mktemp(dir) do scriptpath, io
         default_build_script!(scriptpath; entryPoints = map(f, entryPoints), kwargs...)
         bin = default_build_command(scriptpath)
         _run(bin; dir, stdin, stdout, stderr, rethrow_errors)
     end
+    clean_node_modules && isdir(nodes_modules_dir) && rm(nodes_modules_dir, recursive = true)
+    return nothing
 end
 
 """

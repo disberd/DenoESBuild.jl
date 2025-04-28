@@ -96,12 +96,18 @@ See this comment on reddit: https://www.reddit.com/r/Deno/comments/1j5puzk/comme
 And these related issues where the drive letter is evident from examples but not explicitly mentioned:
 - https://github.com/slackapi/deno-slack-sdk/issues/258
 - https://github.com/slackapi/deno-slack-sdk/issues/391
+
+The approach here is to make all paths relative so the drive letter is not present. Unfortunately this does not work if the 
 =#
 function process_entrypoint(entrypoint::AbstractString, dir::AbstractString)
     isabspath(entrypoint) || return entrypoint
     @static if Sys.iswindows()
+        f(path) = lowercase(first(path)) # Find the drive letter
+        f(dir) == f(entrypoint) || let 
+            @error "The drive letters of the entrypoint and the dir where build is being run are not matching, and this causes errors on windows. Please call the `deno` command from the same drive where the entrypoint file is located." dir entrypoint
+            error("dir and entrypoint on different windows drives")
+        end
         newpath = relpath(entrypoint, dir)
-        @info "Changed path" entrypoint newpath dir
         return newpath
     else
         return entrypoint
@@ -113,10 +119,8 @@ function process_entrypoint(entrypoint, dir::AbstractString)
         d = entrypoint |> JSON3.write |> JSON3.read |> copy # The copy is just to make the JSON3.Object a plain dict
         path = get(d, :in, "")
         isabspath(path) || return d # If we don't have an abspath in the `in` field we just return the dict as is
-        newpath = relpath(path, dir)
         # If we get here, there is an abspath in the `in` field so we have to process it
-        d[:in] = newpath
-        @info "Changed path" d
+        d[:in] = process_entrypoint(path, dir)
         return d
     else
         # There is no problem with abspaths on linux/macos so we simply return

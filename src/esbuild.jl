@@ -29,6 +29,7 @@ where `<scriptpath>` is the path to the generated build script.
 - `dir`: Directory to run the deno command in (defaults to current directory)
 - `stdin`, `stdout`, `stderr`: these are simply forwarded to the [`Base.pipeline`](@ref) function that is wrapping the deno command
 - `rethrow_errors`: Whether to errors that are encountered when trying to run a deno command. If `false` (default) then the error is printed on stdout but the julia execution does not stop. If `true` then the error is rethrown.
+- `remove_node_modules`: Whether to remove the `node_modules` directory from the `dir` where the `deno` command is run after the build is finished. This defaults to `true` if there is no `node_modules` directory in `dir` before running the build command, and `false` otherwise.
 - `kwargs...`: Additional arguments passed to esbuild.build as options, example of valid arguments are:
   - `entryPoints`: Array of entry point file paths
   - `outfile`: Output file path
@@ -119,10 +120,10 @@ bundle(DenoESBuild.jscode("export function hello() { return 'Hello, world!'; }")
 
 See also: [`DenoESBuild.build`](@ref), [`DenoESBuild.bundle`](@ref), [`DenoESBuild.jscode`](@ref)
 """ 
-function bundle(code::JSCode, args...; kwargs...) 
-    mktemp() do entrypoint, io
+function bundle(code::JSCode, args...; dir = pwd(), kwargs...) 
+    mktemp(dir) do entrypoint, io
         write(io, code.code)
         close(io)
-        bundle(entrypoint, args...; kwargs...)
+        bundle(entrypoint, args...; dir, kwargs...)
     end
 end

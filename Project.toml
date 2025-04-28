@@ -1,7 +1,7 @@
 name = "DenoESBuild"
 uuid = "aff91ddb-6407-42b7-bb34-3a1644953040"
 authors = ["Alberto Mengali <disberd@gmail.com>"]
-version = "0.1.0"
+version = "1.0.0"
 
 [deps]
 Deno_jll = "04572ae6-984a-583e-9378-9577a1c2574d"

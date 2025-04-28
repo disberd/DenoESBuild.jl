@@ -8,7 +8,7 @@ This function creates a temporary build script (within the `dir` directory) whic
 The template of the generated build script is the following:
 ```js
 import * as esbuild from "npm:esbuild@0.23.0";
-import { denoPlugins, denoLoader, denoResolver, denoPluginOptions } from "jsr:@duesabati/esbuild-deno-plugin@0.2.6";
+import { denoPlugins, denoLoader, denoResolver } from "jsr:@duesabati/esbuild-deno-plugin@0.2.6";
 
 const result = await esbuild.build({
     plugins: [...denoPlugins()],

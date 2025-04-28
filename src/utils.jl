@@ -34,7 +34,7 @@ end
 function default_build_script!(io::IO; kwargs...)
     # Version that returns the contents as a string
     println(io, "import * as esbuild from \"npm:esbuild@0.23.0\";")
-    println(io, "import { denoPlugins, denoLoader, denoResolver, DenoPluginsOptions } from \"jsr:@duesabati/esbuild-deno-plugin@0.2.6\";")
+    println(io, "import { denoPlugins, denoLoader, denoResolver } from \"jsr:@duesabati/esbuild-deno-plugin@0.2.6\";")
 
     println(io)
     println(io, "// Build the bundle")

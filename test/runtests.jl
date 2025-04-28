@@ -57,6 +57,28 @@ end
     isfile(bundledfile) && rm(bundledfile)
 end
 
+@testitem "build" setup=[setup_deno] begin
+    # We test more complex inputs with different outfile per entrypoint
+    mktempdir() do dir
+        inp1 = joinpath(dir, "inp1.ts")
+        inp2 = joinpath(dir, "inp2.ts")
+        write(inp1, "export function f() { return 3; }")
+        write(inp2, "export function g() { return 4; }")
+        entryPoints = [
+            Dict(:in => inp1, :out => "out3"),
+            Dict(:in => inp2, :out => "out4")
+        ]
+        build(; dir, entryPoints, outdir = dir)
+        @test isfile(joinpath(dir, "out3.js"))
+        @test isfile(joinpath(dir, "out4.js"))
+
+        if Sys.iswindows()
+            inp_different_drive = joinpath("P:\\", "inp_different_drive.ts")
+            @test_throws "dir and entrypoint on different windows drives" build(; dir, entryPoints = [inp_different_drive], outfile = "asd.js")
+        end
+    end
+end
+
 @testitem "Prettify" setup=[setup_deno] begin
     code = JSCode("console.log(    'asd')")
     @test prettify(code) == "console.log(\"asd\");\n"

@@ -83,6 +83,8 @@ This relies on the [deno-esbuild-plugin](https://github.com/due-sabati/deno-esbu
 
 This function is a shortcut for `build(; entryPoints = [entrypoint], outfile, bundle = true, format = "esm", minify = true, platform = "browser", kwargs...)`.
 
+See [`DenoESBuild.build`](@ref) for more details on the supported keyword arguments.
+
 # Example
 ```julia
 using DenoESBuild
@@ -105,7 +107,9 @@ end
 """
     bundle(code::DenoESBuild.JSCode, outfile::AbstractString; kwargs...)
 
-Takes the input javascript/typescript code representing an ESM module and bundles it into a single standalone file `outfile` using esbuild.build through Deno.
+Takes the input javascript/typescript code representing an ESM module and
+bundles it into a single standalone file `outfile` using esbuild.build through
+Deno.
 
 This function simply creates a temporary file whose contents are the provided code and then calls 
 ```julia

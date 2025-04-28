@@ -101,7 +101,7 @@ The approach here is to make all paths relative so the drive letter is not prese
 =#
 function process_entrypoint(entrypoint::AbstractString, dir::AbstractString)
     isabspath(entrypoint) || return entrypoint
-    @static if Sys.iswindows()
+    if Sys.iswindows()
         f(path) = lowercase(first(path)) # Find the drive letter
         f(dir) == f(entrypoint) || let 
             @error "The drive letters of the entrypoint and the dir where build is being run are not matching, and this causes errors on windows. Please call the `deno` command from the same drive where the entrypoint file is located." dir entrypoint
@@ -114,7 +114,7 @@ function process_entrypoint(entrypoint::AbstractString, dir::AbstractString)
     end
 end
 function process_entrypoint(entrypoint, dir::AbstractString)
-    @static if Sys.iswindows()
+    if Sys.iswindows()
         # We assume entrypoint is an object that can be converted to json with JSON3.write. We go back and forth from JSON to get a consistent output type
         d = entrypoint |> JSON3.write |> JSON3.read |> copy # The copy is just to make the JSON3.Object a plain dict
         path = get(d, :in, "")

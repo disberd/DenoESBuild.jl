@@ -1,4 +1,5 @@
 # DenoESBuild.jl
+[![Build Status](https://github.com/disberd/DenoESBuild.jl/actions/workflows/CI.yml/badge.svg?branch=main)](https://github.com/disberd/DenoESBuild.jl/actions/workflows/CI.yml?query=branch%3Amain)
 [![Coverage](https://codecov.io/gh/disberd/DenoESBuild.jl/branch/main/graph/badge.svg)](https://codecov.io/gh/disberd/DenoESBuild.jl)
 [![Aqua QA](https://raw.githubusercontent.com/JuliaTesting/Aqua.jl/master/badge.svg)](https://github.com/JuliaTesting/Aqua.jl)
 
@@ -11,9 +12,9 @@ It also exploits the [esbuild-deno-plugin](https://github.com/due-sabati/esbuild
 
 
 This package does not export any function, but the following methods are considered part of the public API:
-- [`DenoESBuild.build`](@ref)
-- [`DenoESBuild.bundle`](@ref)
-- [`DenoESBuild.JSCode`](@ref)
+- `DenoESBuild.build`
+- `DenoESBuild.bundle`
+- `DenoESBuild.JSCode`
 
 ## Example Use
 

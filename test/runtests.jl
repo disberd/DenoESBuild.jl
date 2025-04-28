@@ -47,6 +47,7 @@ end
 
     @test isfile(bundledfile)
 
+    s = f()
     _deno("run $mainfile"; stderr = s.stderr, stdout = s.stdout)
     @test contains(String(take!(s.stdout)), "The number is: 2")
 

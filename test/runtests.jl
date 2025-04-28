@@ -13,14 +13,17 @@ end
     _deno("run main_remote.ts"; dir, stderr = s.stderr, stdout = s.stdout)
     @test contains(String(take!(s.stdout)), "CHECK THIS")
 
+    s = f()
     # Check without allowing npm
     _deno("run --no-npm main_remote.ts"; dir, stderr = s.stderr, stdout = s.stdout)
     @test contains(String(take!(s.stderr)), "but --no-npm is specified")
 
+    s = f()
     # We test that the local errors as we don't have the bundle yet
     _deno("run --no-npm main_local.ts"; dir, stderr = s.stderr, stdout = s.stdout)
     @test contains(String(take!(s.stderr)), "Module not found") 
 
+    s = f()
     # We now bundle the module
     bundle("module.ts", "bundled.js"; dir)
     _deno("run --no-npm main_local.ts"; dir, stderr = s.stderr, stdout = s.stdout)

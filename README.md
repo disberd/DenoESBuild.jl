@@ -5,7 +5,7 @@
 
 DenoESBuild.jl is a Julia package that provides a simple interface for bundling JavaScript/TypeScript code using the `build` function of the [esbuild](https://esbuild.github.io/api/) library through Deno using the `Deno_jll.jl` package.
 
-It also exploits the [esbuild-deno-plugin](https://github.com/due-sabati/esbuild-deno-plugin) to allow deno caching, module resolution and loading as part of the esbuild build process.
+It also exploits the [esbuild-deno-plugin](https://github.com/twosaturdayscode/esbuild-deno-plugin) to allow deno caching, module resolution and loading as part of the esbuild build process.
 
 > [!NOTE]
 > When bundling files that refer to remote imports (e.g. `npm:...`), an internet connection is in principle required to fetch the remote libraries. This is not the case if the target libraries are already availabile in the Deno cache.

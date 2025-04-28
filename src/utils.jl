@@ -100,7 +100,9 @@ And these related issues where the drive letter is evident from examples but not
 function process_entrypoint(entrypoint::AbstractString, dir::AbstractString)
     isabspath(entrypoint) || return entrypoint
     @static if Sys.iswindows()
-        return relpath(entrypoint, dir)
+        newpath = relpath(entrypoint, dir)
+        @info "Changed path" entrypoint newpath
+        return newpath
     else
         return entrypoint
     end
@@ -111,8 +113,10 @@ function process_entrypoint(entrypoint, dir::AbstractString)
         d = entrypoint |> JSON3.write |> JSON3.read |> copy # The copy is just to make the JSON3.Object a plain dict
         path = get(d, :in, "")
         isabspath(path) || return d # If we don't have an abspath in the `in` field we just return the dict as is
+        newpath = relpath(path, dir)
         # If we get here, there is an abspath in the `in` field so we have to process it
-        d[:in] = relpath(path, dir)
+        d[:in] = newpath
+        @info "Changed path" d
         return d
     else
         # There is no problem with abspaths on linux/macos so we simply return
